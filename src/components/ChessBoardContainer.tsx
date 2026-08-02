@@ -22,7 +22,6 @@ export const ChessBoardContainer: React.FC<ChessBoardContainerProps> = ({
   highlightLegalMoves = true,
   disabled = false
 }) => {
-  const BoardComponent = Chessboard as React.ComponentType<any>;
   const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
   const [possibleSquares, setPossibleSquares] = useState<Square[]>([]);
   const [pendingPromotion, setPendingPromotion] = useState<{ from: Square; to: Square } | null>(null);
@@ -144,16 +143,25 @@ export const ChessBoardContainer: React.FC<ChessBoardContainerProps> = ({
 
   return (
     <div className="relative w-full aspect-square max-w-[420px] mx-auto select-none rounded-2xl overflow-hidden shadow-lg border-2 border-slate-300 bg-white">
-      <BoardComponent
-        position={chess.fen()}
-        onPieceDrop={(from: any, to: any) => handlePieceDrop(from as Square, to as Square)}
-        onSquareClick={(sq: any) => handleSquareClick(sq as Square)}
-        boardOrientation={orientation === 'w' ? 'white' : 'black'}
-        customLightSquareStyle={{ backgroundColor: activeTheme.lightSquare }}
-        customDarkSquareStyle={{ backgroundColor: activeTheme.darkSquare }}
-        customSquareStyles={customSquareStyles}
-        arePiecesDraggable={!disabled}
-        animationDuration={200}
+      <Chessboard
+        options={{
+          position: chess.fen(),
+          onPieceDrop: ({ sourceSquare, targetSquare }) => {
+            if (!targetSquare) return false;
+            return handlePieceDrop(sourceSquare as Square, targetSquare as Square);
+          },
+          onSquareClick: ({ square }) => {
+            if (square) {
+              handleSquareClick(square as Square);
+            }
+          },
+          boardOrientation: orientation === 'w' ? 'white' : 'black',
+          lightSquareStyle: { backgroundColor: activeTheme.lightSquare },
+          darkSquareStyle: { backgroundColor: activeTheme.darkSquare },
+          squareStyles: customSquareStyles,
+          allowDragging: !disabled,
+          animationDurationInMs: 200
+        }}
       />
 
       {/* Pawn Promotion Modal Overlay */}
