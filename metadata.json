@@ -1,0 +1,6 @@
+{
+  "name": "Prajurit Digital Chess",
+  "description": "Aplikasi catur modern mobile-first: Main vs AI (Stockfish), Pass & Play, Online Room, Analysis Board & Evaluation Bar.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
