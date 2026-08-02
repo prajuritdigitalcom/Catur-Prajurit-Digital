@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { supabaseAdmin } from '../../_lib/supabaseAdmin';
-import { mapRowToApiShape, RoomRow } from '../../_lib/roomTypes';
+import { supabaseAdmin } from '../../_lib/supabaseAdmin.js';
+import { mapRowToApiShape, RoomRow } from '../../_lib/roomTypes.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const code = String(req.query.code).toUpperCase();
