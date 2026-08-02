@@ -1,5 +1,4 @@
 import React from 'react';
-import { Crown, Sparkles } from 'lucide-react';
 import { UserProfile } from '../types';
 
 interface HeaderProps {
@@ -16,41 +15,38 @@ export const Header: React.FC<HeaderProps> = ({
   isGameActive = false
 }) => {
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-3.5 py-2.5 shadow-xs">
+    <header className="sticky top-0 z-40 w-full bg-ink-900/95 backdrop-blur-md border-b border-ink-700 px-3.5 py-2.5">
       <div className="max-w-md mx-auto flex items-center justify-between">
-        {/* Brand Logo & Name */}
         <button
           onClick={() => onNavigate('play')}
-          className="flex items-center gap-2 text-left group focus:outline-none"
+          className="flex items-center gap-2.5 text-left group focus:outline-none"
         >
-          <div className="w-9 h-9 rounded-xl bg-[#fe4c6f] flex items-center justify-center text-white shadow-md shadow-rose-200 group-active:scale-95 transition-transform">
-            <Crown className="w-5 h-5 fill-white/20" />
+          <div className="w-9 h-9 rounded-md bg-ink-800 border border-brass-600/40 flex items-center justify-center text-brass-400 group-active:scale-95 transition-transform text-lg font-display">
+            ♞
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-sm tracking-tight text-slate-900 group-hover:text-[#fe4c6f] transition-colors">
+              <span className="font-display font-semibold text-[15px] tracking-tight text-bone-100 leading-none">
                 Prajurit Digital
               </span>
-              <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.2 rounded-full bg-rose-50 text-[#fe4c6f] font-bold border border-rose-200/60">
-                Chess
-              </span>
             </div>
-            <p className="text-[10px] text-slate-500 font-medium">Catur HP Indonesia</p>
+            <p className="text-[10px] font-notation text-brass-500/80 tracking-wide mt-0.5">
+              catur.hp/indonesia
+            </p>
           </div>
         </button>
 
-        {/* Compact User Profile Chip */}
         <button
           onClick={() => onNavigate('profile')}
-          className="flex items-center gap-1.5 bg-slate-100/80 hover:bg-slate-200/80 border border-slate-200 px-2.5 py-1 rounded-full text-left transition-all active:scale-95"
+          className="flex items-center gap-1.5 bg-ink-800 hover:bg-ink-700 border border-ink-600 px-2.5 py-1 rounded-md text-left transition-all active:scale-95"
         >
-          <span className="text-base">{profile.avatar || '⚔️'}</span>
+          <span className="text-base leading-none">{profile.avatar || '⚔️'}</span>
           <div className="flex flex-col text-right">
-            <span className="text-[11px] font-bold text-slate-800 leading-tight truncate max-w-[85px]">
+            <span className="text-[11px] font-semibold text-bone-200 leading-tight truncate max-w-[85px]">
               {profile.displayName || profile.username}
             </span>
-            <span className="text-[9px] text-[#fe4c6f] font-mono font-bold">
-              {profile.rating} Elo
+            <span className="text-[9px] text-brass-400 font-notation">
+              {profile.rating} elo
             </span>
           </div>
         </button>

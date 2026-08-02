@@ -1,52 +1,87 @@
 @import "tailwindcss";
 
-@layer base {
-  :root {
-    --primary: #fe4c6f;
-    --primary-hover: #e03a5b;
-    --bg-light: #f8fafc;
-    --card-light: #ffffff;
-    --border-light: #e2e8f0;
-  }
+@theme {
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-notation: "IBM Plex Mono", ui-monospace, monospace;
 
+  --color-ink-950: #0f0d0a;
+  --color-ink-900: #15120e;
+  --color-ink-800: #1f1a14;
+  --color-ink-700: #2a2319;
+  --color-ink-600: #362d20;
+  --color-ink-500: #4a3f2e;
+
+  --color-bone-100: #f5f0e4;
+  --color-bone-200: #ede6d6;
+  --color-bone-300: #d9cfb8;
+  --color-bone-400: #a79c87;
+
+  --color-brass-300: #e4c47a;
+  --color-brass-400: #d4a24c;
+  --color-brass-500: #c89b3c;
+  --color-brass-600: #a87e2e;
+
+  --color-garnet-400: #b5504f;
+  --color-garnet-500: #9b3d3d;
+  --color-garnet-600: #7c2f2f;
+
+  --color-jade-400: #4f9a80;
+  --color-jade-500: #3f7a63;
+  --color-jade-600: #2f6350;
+}
+
+@layer base {
   body {
-    background-color: #f8fafc;
-    color: #0f172a;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: var(--color-ink-900);
+    color: var(--color-bone-200);
+    font-family: var(--font-sans);
     overflow-x: hidden;
     -webkit-tap-highlight-color: transparent;
   }
+
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+  }
 }
 
-/* Custom Scrollbars for Light Mode */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--color-ink-800);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--color-ink-600);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #fe4c6f;
+  background: var(--color-brass-500);
 }
 
-/* Subtle Glow Animations for Light Theme */
-@keyframes pulseGlowLight {
+.board-texture {
+  background-image:
+    linear-gradient(45deg, rgba(212, 162, 76, 0.05) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(212, 162, 76, 0.05) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(212, 162, 76, 0.05) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(212, 162, 76, 0.05) 75%);
+  background-size: 28px 28px;
+  background-position: 0 0, 0 14px, 14px -14px, -14px 0px;
+}
+
+@keyframes pulseGlowBrass {
   0%, 100% {
-    box-shadow: 0 0 12px rgba(254, 76, 111, 0.15);
+    box-shadow: 0 0 10px rgba(212, 162, 76, 0.18);
   }
   50% {
-    box-shadow: 0 0 20px rgba(254, 76, 111, 0.35);
+    box-shadow: 0 0 18px rgba(212, 162, 76, 0.35);
   }
 }
 
 .glow-primary {
-  animation: pulseGlowLight 3s infinite ease-in-out;
+  animation: pulseGlowBrass 3s infinite ease-in-out;
 }

@@ -64,7 +64,7 @@ export default function App() {
   const isGameActive = currentTab === 'ai' || currentTab === 'local' || currentTab === 'gameroom';
 
   return (
-    <div className="min-h-screen bg-[#0b0f19] text-slate-100 flex flex-col selection:bg-[#fe4c6f] selection:text-white">
+    <div className="min-h-screen bg-ink-900 text-bone-200 flex flex-col selection:bg-brass-500 selection:text-ink-950">
       {/* Header Bar */}
       <Header
         profile={userProfile}
