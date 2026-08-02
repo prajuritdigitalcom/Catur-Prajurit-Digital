@@ -8,6 +8,8 @@ import { MoveHistory } from '../components/MoveHistory';
 import { ChatPanel } from '../components/ChatPanel';
 import { Player, MoveRecord, BoardTheme, ChatMessage } from '../types';
 import { INITIAL_FEN } from '../constants/chess';
+import { supabase } from '../lib/supabaseClient';
+import { mapRoomRowToApiShape, RoomRow } from '../lib/roomRealtime';
 
 interface GameRoomViewProps {
   roomCode: string;
@@ -45,9 +47,17 @@ export const GameRoomView: React.FC<GameRoomViewProps> = ({
   const [copiedCode, setCopiedCode] = useState(false);
   const [myRole, setMyRole] = useState<'host' | 'guest' | 'spectator'>('spectator');
 
-  // Join Room & SSE Setup
+  // Join Room & Realtime Setup
   useEffect(() => {
-    let eventSource: EventSource | null = null;
+    let channel: ReturnType<NonNullable<typeof supabase>['channel']> | null = null;
+
+    const applyRoom = (room: ServerRoomData) => {
+      setRoomData(room);
+      if (room.fen) {
+        chess.load(room.fen);
+        setFen(room.fen);
+      }
+    };
 
     const joinAndConnect = async () => {
       try {
@@ -59,36 +69,35 @@ export const GameRoomView: React.FC<GameRoomViewProps> = ({
         const data = await res.json();
         if (data.success) {
           setMyRole(data.role);
-          setRoomData(data.room);
-          if (data.room.fen) {
-            chess.load(data.room.fen);
-            setFen(data.room.fen);
-          }
+          applyRoom(data.room);
         }
       } catch {
         // ignore
       }
 
-      // Connect EventSource SSE
-      eventSource = new EventSource(`/api/rooms/${roomCode}/stream`);
-      eventSource.onmessage = (e) => {
-        try {
-          const updatedRoom: ServerRoomData = JSON.parse(e.data);
-          setRoomData(updatedRoom);
-          if (updatedRoom.fen) {
-            chess.load(updatedRoom.fen);
-            setFen(updatedRoom.fen);
+      // Subscribe ke perubahan baris room ini lewat Supabase Realtime.
+      // Ini koneksi WebSocket langsung ke Supabase (bukan lewat Vercel
+      // function), jadi tidak kena batas waktu eksekusi serverless.
+      if (!supabase) return;
+
+      channel = supabase
+        .channel(`room-${roomCode}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'rooms', filter: `code=eq.${roomCode}` },
+          (payload) => {
+            const row = payload.new as RoomRow | undefined;
+            if (!row || Object.keys(row).length === 0) return;
+            applyRoom(mapRoomRowToApiShape(row));
           }
-        } catch {
-          // ignore
-        }
-      };
+        )
+        .subscribe();
     };
 
     joinAndConnect();
 
     return () => {
-      eventSource?.close();
+      channel?.unsubscribe();
     };
   }, [roomCode]);
 
