@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Edit3, Check, History } from 'lucide-react';
+import { Edit3, Check, History, X, ArrowLeft } from 'lucide-react';
 import { UserProfile, GameState } from '../types';
 import { AVATARS } from '../constants/chess';
 import { saveProfile, getGameHistory } from '../lib/storage';
@@ -7,11 +7,13 @@ import { saveProfile, getGameHistory } from '../lib/storage';
 interface ProfileViewProps {
   profile: UserProfile;
   onUpdateProfile: (updated: UserProfile) => void;
+  onClose?: () => void;
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
   profile,
-  onUpdateProfile
+  onUpdateProfile,
+  onClose
 }) => {
   const [displayNameInput, setDisplayNameInput] = useState(profile.displayName);
   const [selectedAvatar, setSelectedAvatar] = useState(profile.avatar);
@@ -37,6 +39,32 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
   return (
     <div className="w-full max-w-md mx-auto px-3.5 py-4 space-y-3.5 animate-in fade-in duration-200 pb-20">
+      {/* Top Bar with Close Button */}
+      <div className="bg-white border border-slate-200/90 rounded-3xl p-3 px-4 flex items-center justify-between shadow-xs">
+        <div className="flex items-center gap-2">
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+              title="Kembali"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+          )}
+          <h2 className="text-sm font-black text-slate-900">Profil Saya</h2>
+        </div>
+
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-[#fe4c6f] border border-rose-200 font-extrabold text-xs flex items-center gap-1.5 transition-colors"
+          >
+            <X className="w-4 h-4" />
+            <span>Tutup</span>
+          </button>
+        )}
+      </div>
+
       {/* Profile Header Card */}
       <div className="bg-white border border-slate-200/90 rounded-3xl p-4 space-y-4 shadow-xs">
         <div className="flex items-center justify-between">
@@ -186,6 +214,17 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           </div>
         )}
       </div>
+
+      {/* Bottom Close Button */}
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="w-full py-3 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs rounded-2xl border border-slate-200 flex items-center justify-center gap-2 transition-colors shadow-xs"
+        >
+          <X className="w-4 h-4 text-[#fe4c6f]" />
+          <span>Tutup Profil & Kembali</span>
+        </button>
+      )}
     </div>
   );
 };

@@ -154,6 +154,7 @@ export default function App() {
           <ProfileView
             profile={userProfile}
             onUpdateProfile={setUserProfile}
+            onClose={() => setCurrentTab('landing')}
           />
         )}
 
@@ -161,6 +162,7 @@ export default function App() {
           <SettingsView
             settings={userSettings}
             onUpdateSettings={setUserSettings}
+            onClose={() => setCurrentTab('landing')}
           />
         )}
       </main>

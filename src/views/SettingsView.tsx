@@ -1,5 +1,5 @@
 import React from 'react';
-import { Settings, Volume2, VolumeX, Eye, Palette, Check } from 'lucide-react';
+import { Settings, Volume2, VolumeX, Eye, Palette, Check, X, ArrowLeft } from 'lucide-react';
 import { UserSettings, BoardTheme } from '../types';
 import { BOARD_THEMES } from '../constants/chess';
 import { saveSettings } from '../lib/storage';
@@ -8,11 +8,13 @@ import { soundEngine } from '../lib/audio';
 interface SettingsViewProps {
   settings: UserSettings;
   onUpdateSettings: (updated: UserSettings) => void;
+  onClose?: () => void;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
   settings,
-  onUpdateSettings
+  onUpdateSettings,
+  onClose
 }) => {
   const handleChangeTheme = (theme: BoardTheme) => {
     const updated = { ...settings, boardTheme: theme };
@@ -49,14 +51,35 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   return (
     <div className="w-full max-w-md mx-auto px-3.5 py-4 space-y-3.5 animate-in fade-in duration-200 pb-20">
       {/* Mobile Header Card */}
-      <div className="bg-white border border-slate-200/90 rounded-3xl p-4 flex items-center gap-3 shadow-xs">
-        <div className="w-10 h-10 rounded-2xl bg-rose-50 text-[#fe4c6f] flex items-center justify-center font-bold border border-rose-100 flex-shrink-0">
-          <Settings className="w-5 h-5" />
+      <div className="bg-white border border-slate-200/90 rounded-3xl p-4 flex items-center justify-between shadow-xs">
+        <div className="flex items-center gap-3">
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+              title="Kembali"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+          )}
+          <div className="w-10 h-10 rounded-2xl bg-rose-50 text-[#fe4c6f] flex items-center justify-center font-bold border border-rose-100 flex-shrink-0">
+            <Settings className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-sm font-black text-slate-900">Pengaturan Aplikasi</h2>
+            <p className="text-slate-500 text-[11px]">Kustomisasi papan & suara catur HP.</p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-sm font-black text-slate-900">Pengaturan Aplikasi</h2>
-          <p className="text-slate-500 text-[11px]">Kustomisasi papan & suara catur HP.</p>
-        </div>
+
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-[#fe4c6f] border border-rose-200 font-extrabold text-xs flex items-center gap-1.5 transition-colors"
+          >
+            <X className="w-4 h-4" />
+            <span>Tutup</span>
+          </button>
+        )}
       </div>
 
       {/* Board Theme Selection */}
@@ -191,6 +214,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Bottom Close Button */}
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="w-full py-3 bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-xs rounded-2xl border border-slate-200 flex items-center justify-center gap-2 transition-colors shadow-xs"
+        >
+          <X className="w-4 h-4 text-[#fe4c6f]" />
+          <span>Tutup Pengaturan & Kembali</span>
+        </button>
+      )}
     </div>
   );
 };

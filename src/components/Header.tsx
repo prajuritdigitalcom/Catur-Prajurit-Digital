@@ -88,11 +88,19 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </button>
 
+        {/* Backdrop for closing popup easily */}
+        {isPopupOpen && (
+          <div
+            className="fixed inset-0 bg-slate-900/50 z-40 animate-in fade-in duration-150"
+            onClick={() => setIsPopupOpen(false)}
+          />
+        )}
+
         {/* Profile Pop-up Card */}
         {isPopupOpen && (
           <div
             ref={popupRef}
-            className="absolute top-full right-0 mt-2 w-72 bg-white text-slate-900 border border-slate-200 rounded-2xl shadow-xl p-4 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-3"
+            className="absolute top-full right-0 mt-2 w-72 bg-white text-slate-900 border border-slate-200 rounded-2xl shadow-2xl p-4 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-3"
           >
             {/* Pop-up Header */}
             <div className="flex items-center justify-between pb-2 border-b border-slate-100">
@@ -112,7 +120,8 @@ export const Header: React.FC<HeaderProps> = ({
 
               <button
                 onClick={() => setIsPopupOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors flex items-center justify-center"
+                title="Tutup Menu"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -168,6 +177,14 @@ export const Header: React.FC<HeaderProps> = ({
                   Pengaturan
                 </span>
                 <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+              </button>
+
+              <button
+                onClick={() => setIsPopupOpen(false)}
+                className="w-full py-2 px-3 bg-rose-50 hover:bg-rose-100 text-[#fe4c6f] border border-rose-200 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors mt-2"
+              >
+                <X className="w-3.5 h-3.5" />
+                Tutup Menu
               </button>
             </div>
           </div>
