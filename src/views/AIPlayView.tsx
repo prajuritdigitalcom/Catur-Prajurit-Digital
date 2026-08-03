@@ -272,14 +272,6 @@ export const AIPlayView: React.FC<AIPlayViewProps> = ({
         </button>
       </div>
 
-      {/* AI Thinking Status Badge */}
-      {isAiThinking && !isGameOver && (
-        <div className="flex items-center justify-center gap-2 py-1.5 px-3 bg-amber-50 border border-amber-200/80 text-amber-800 rounded-xl text-xs font-bold shadow-xs animate-pulse">
-          <Bot className="w-4 h-4 animate-bounce text-amber-600" />
-          <span>AI sedang memikirkan langkah terbaik...</span>
-        </div>
-      )}
-
       {/* Opponent Clock Top */}
       <GameClock
         player={userColor === 'w' ? aiPlayer : userPlayer}

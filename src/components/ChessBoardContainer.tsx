@@ -195,7 +195,7 @@ export const ChessBoardContainer: React.FC<ChessBoardContainerProps> = ({
           darkSquareStyle: { backgroundColor: activeTheme.darkSquare },
           squareStyles: customSquareStyles,
           allowDragging: !disabled,
-          animationDurationInMs: 300,
+          animationDurationInMs: 400,
           showAnimations: true
         }}
       />
