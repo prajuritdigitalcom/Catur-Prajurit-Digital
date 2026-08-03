@@ -1,6 +1,6 @@
 {
-  "name": "Prajurit Digital Chess",
-  "description": "Aplikasi catur modern mobile-first: Main vs AI (Stockfish), Pass & Play, Online Room, Analysis Board & Evaluation Bar.",
+  "name": "Catur HP Indonesia",
+  "description": "Aplikasi catur HP ringan, cepat & terang buatan Karya Prajurit Digital. Mode Lawan Bot AI Stockfish, Main Lokal 2 Pemain, dan Lobi Room Online.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
