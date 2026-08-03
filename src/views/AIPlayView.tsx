@@ -100,7 +100,19 @@ export const AIPlayView: React.FC<AIPlayViewProps> = ({
 
   const triggerAIMove = async () => {
     try {
+      // Minimum thinking delay (650ms - 900ms) so user move animation finishes smoothly,
+      // the AI turn feels natural and thoughtful, and the piece movement animation is clear!
+      const minThinkingTime = 650 + Math.random() * 250;
+      const startTime = Date.now();
+
       const aiMove = await getAIMove(chess.fen(), selectedAiConfig.depth);
+
+      const elapsedTime = Date.now() - startTime;
+      const remainingDelay = Math.max(0, minThinkingTime - elapsedTime);
+      if (remainingDelay > 0) {
+        await new Promise((res) => setTimeout(res, remainingDelay));
+      }
+
       const moveResult = chess.move({
         from: aiMove.from,
         to: aiMove.to,
@@ -261,6 +273,14 @@ export const AIPlayView: React.FC<AIPlayViewProps> = ({
           <RotateCcw className="w-4 h-4" />
         </button>
       </div>
+
+      {/* AI Thinking Status Badge */}
+      {isAiThinking && !isGameOver && (
+        <div className="flex items-center justify-center gap-2 py-1.5 px-3 bg-amber-50 border border-amber-200/80 text-amber-800 rounded-xl text-xs font-bold shadow-xs animate-pulse">
+          <Bot className="w-4 h-4 animate-bounce text-amber-600" />
+          <span>AI sedang memikirkan langkah terbaik...</span>
+        </div>
+      )}
 
       {/* Opponent Clock Top */}
       <GameClock

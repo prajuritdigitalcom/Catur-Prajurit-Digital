@@ -121,22 +121,57 @@ export const ChessBoardContainer: React.FC<ChessBoardContainerProps> = ({
     }
   };
 
-  // Custom styles for legal moves & selected square
+  // Custom styles for legal moves, last move, check, & selected square
   const customSquareStyles: Record<string, React.CSSProperties> = {};
 
+  // 1. Highlight Last Move (from & to)
+  const history = chess.history({ verbose: true });
+  const lastMove = history.length > 0 ? history[history.length - 1] : null;
+
+  if (lastMove) {
+    customSquareStyles[lastMove.from] = {
+      backgroundColor: 'rgba(212, 162, 76, 0.35)',
+      boxShadow: 'inset 0 0 0 2px rgba(212, 162, 76, 0.65)'
+    };
+    customSquareStyles[lastMove.to] = {
+      backgroundColor: 'rgba(212, 162, 76, 0.55)',
+      boxShadow: 'inset 0 0 0 2px rgba(212, 162, 76, 0.85)'
+    };
+  }
+
+  // 2. Highlight King when in check
+  if (chess.inCheck()) {
+    const turn = chess.turn();
+    const board = chess.board();
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const piece = board[r][c];
+        if (piece && piece.type === 'k' && piece.color === turn) {
+          const kingSquare = `${String.fromCharCode(97 + c)}${8 - r}`;
+          customSquareStyles[kingSquare] = {
+            backgroundColor: 'rgba(220, 38, 38, 0.65)',
+            boxShadow: 'inset 0 0 10px rgba(239, 68, 68, 0.95)'
+          };
+        }
+      }
+    }
+  }
+
+  // 3. Highlight Selected Square
   if (selectedSquare) {
     customSquareStyles[selectedSquare] = {
-      backgroundColor: 'rgba(254, 76, 111, 0.4)',
+      backgroundColor: 'rgba(254, 76, 111, 0.45)',
       boxShadow: 'inset 0 0 8px rgba(254, 76, 111, 0.8)'
     };
   }
 
+  // 4. Highlight Legal Move Targets
   possibleSquares.forEach((sq) => {
     const isCaptureTarget = chess.get(sq) !== null;
     customSquareStyles[sq] = {
       background: isCaptureTarget
-        ? 'radial-gradient(circle, rgba(254, 76, 111, 0.8) 40%, transparent 40%)'
-        : 'radial-gradient(circle, rgba(254, 76, 111, 0.6) 25%, transparent 25%)',
+        ? 'radial-gradient(circle, rgba(254, 76, 111, 0.85) 40%, transparent 40%)'
+        : 'radial-gradient(circle, rgba(254, 76, 111, 0.65) 25%, transparent 25%)',
       borderRadius: '50%'
     };
   });
@@ -160,7 +195,8 @@ export const ChessBoardContainer: React.FC<ChessBoardContainerProps> = ({
           darkSquareStyle: { backgroundColor: activeTheme.darkSquare },
           squareStyles: customSquareStyles,
           allowDragging: !disabled,
-          animationDurationInMs: 200
+          animationDurationInMs: 300,
+          showAnimations: true
         }}
       />
 
