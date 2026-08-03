@@ -124,7 +124,7 @@ export const OnlinePlayView: React.FC<OnlinePlayViewProps> = ({
           </div>
           <div>
             <h3 className="font-extrabold text-xs text-slate-900">Buat Private Room Baru</h3>
-            <p className="text-slate-500 text-[11px]">Dapatkan kode 2-digit untuk teman Anda.</p>
+            <p className="text-slate-500 text-[11px]">Dapatkan kode 3-digit untuk teman Anda.</p>
           </div>
         </div>
 
@@ -167,17 +167,17 @@ export const OnlinePlayView: React.FC<OnlinePlayViewProps> = ({
           </div>
           <div>
             <h3 className="font-extrabold text-xs text-slate-900">Gabung Kode Room</h3>
-            <p className="text-slate-500 text-[11px]">Masukkan kode 2-digit dari teman.</p>
+            <p className="text-slate-500 text-[11px]">Masukkan kode 3-digit dari teman.</p>
           </div>
         </div>
 
         <form onSubmit={handleJoinByCode} className="space-y-2">
           <input
             type="text"
-            maxLength={2}
+            maxLength={3}
             value={roomCodeInput}
             onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())}
-            placeholder="CONTOH: X8"
+            placeholder="CONTOH: X89"
             className="w-full bg-slate-50 border-2 border-slate-200 focus:border-[#fe4c6f] rounded-2xl px-3 py-2.5 font-mono font-black text-center text-base text-slate-900 uppercase tracking-widest placeholder-slate-400 focus:outline-none"
           />
 
