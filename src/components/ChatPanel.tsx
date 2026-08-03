@@ -16,10 +16,12 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   currentUserId
 }) => {
   const [inputText, setInputText] = useState('');
-  const chatEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   }, [messages]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -43,7 +45,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
       </div>
 
       {/* Messages List */}
-      <div className="flex-1 overflow-y-auto py-2 space-y-2 max-h-[140px] text-xs">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto py-2 space-y-2 max-h-[140px] text-xs">
         {messages.length === 0 ? (
           <div className="text-center text-slate-400 py-4 italic">
             Kirim pesan pertama atau gunakan emoji reaksi.
@@ -84,7 +86,6 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             );
           })
         )}
-        <div ref={chatEndRef} />
       </div>
 
       {/* Quick Reaction Emojis */}
