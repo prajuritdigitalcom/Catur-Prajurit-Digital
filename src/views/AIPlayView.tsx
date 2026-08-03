@@ -144,8 +144,40 @@ export const AIPlayView: React.FC<AIPlayViewProps> = ({
         setHistory((prev) => [...prev, newRecord]);
         checkGameStatus();
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      console.error('AI move failed or timed out, executing fallback move:', err);
+      const fallbackMoves = chess.moves({ verbose: true });
+      if (fallbackMoves.length > 0) {
+        const randomMove = fallbackMoves[Math.floor(Math.random() * fallbackMoves.length)];
+        const moveResult = chess.move(randomMove);
+        if (moveResult) {
+          if (chess.inCheck()) {
+            soundEngine.playCheck();
+          } else if (moveResult.captured) {
+            soundEngine.playCapture();
+          } else {
+            soundEngine.playMove();
+          }
+
+          const newFen = chess.fen();
+          setFen(newFen);
+          const score = evaluateBoard(chess);
+          setEvalScore(score);
+
+          const newRecord: MoveRecord = {
+            moveNumber: Math.floor(history.length / 2) + 1,
+            san: moveResult.san,
+            fenAfter: newFen,
+            from: moveResult.from,
+            to: moveResult.to,
+            piece: moveResult.piece,
+            captured: moveResult.captured
+          };
+
+          setHistory((prev) => [...prev, newRecord]);
+          checkGameStatus();
+        }
+      }
     } finally {
       setIsAiThinking(false);
     }

@@ -120,126 +120,63 @@ export function evaluateBoard(chess: Chess): number {
   return totalEval;
 }
 
-/**
- * Minimax with Alpha-Beta pruning for AI calculation.
- */
-function minimax(
-  chess: Chess,
-  depth: number,
-  alpha: number,
-  beta: number,
-  isMaximizing: boolean
-): { score: number; bestMove?: { from: Square; to: Square; promotion?: string; san: string } } {
-  if (depth === 0 || chess.isGameOver()) {
-    return { score: evaluateBoard(chess) };
+let aiWorkerInstance: Worker | null = null;
+
+function getAIWorker(): Worker {
+  if (!aiWorkerInstance) {
+    aiWorkerInstance = new Worker(
+      new URL('../workers/aiWorker.ts', import.meta.url),
+      { type: 'module' }
+    );
   }
-
-  const moves = chess.moves({ verbose: true });
-  if (moves.length === 0) {
-    return { score: evaluateBoard(chess) };
-  }
-
-  let bestMove = moves[0];
-
-  // Move ordering: Prioritize captures & checks for faster alpha-beta pruning
-  moves.sort((a, b) => {
-    let scoreA = 0;
-    let scoreB = 0;
-    if (a.captured) scoreA += PIECE_VALUES[a.captured] * 10 - PIECE_VALUES[a.piece];
-    if (b.captured) scoreB += PIECE_VALUES[b.captured] * 10 - PIECE_VALUES[b.piece];
-    if (a.san.includes('+')) scoreA += 50;
-    if (b.san.includes('+')) scoreB += 50;
-    return scoreB - scoreA;
-  });
-
-  if (isMaximizing) {
-    let maxEval = -Infinity;
-    for (const move of moves) {
-      chess.move(move);
-      const evalResult = minimax(chess, depth - 1, alpha, beta, false);
-      chess.undo();
-
-      if (evalResult.score > maxEval) {
-        maxEval = evalResult.score;
-        bestMove = move;
-      }
-      alpha = Math.max(alpha, evalResult.score);
-      if (beta <= alpha) break; // Prune
-    }
-    return {
-      score: maxEval,
-      bestMove: { from: bestMove.from, to: bestMove.to, promotion: bestMove.promotion, san: bestMove.san }
-    };
-  } else {
-    let minEval = Infinity;
-    for (const move of moves) {
-      chess.move(move);
-      const evalResult = minimax(chess, depth - 1, alpha, beta, true);
-      chess.undo();
-
-      if (evalResult.score < minEval) {
-        minEval = evalResult.score;
-        bestMove = move;
-      }
-      beta = Math.min(beta, evalResult.score);
-      if (beta <= alpha) break; // Prune
-    }
-    return {
-      score: minEval,
-      bestMove: { from: bestMove.from, to: bestMove.to, promotion: bestMove.promotion, san: bestMove.san }
-    };
-  }
+  return aiWorkerInstance;
 }
 
 /**
- * Get AI Move based on depth and optional randomness for lower difficulties.
+ * Get AI Move via Web Worker with circuit breaker timeout.
  */
 export async function getAIMove(
   fen: string,
   depth: number = 4
 ): Promise<{ from: string; to: string; promotion?: string; san: string; evalScore: number }> {
-  // Yield thread brief moment so UI stays responsive
-  await new Promise((res) => setTimeout(res, 40));
+  return new Promise((resolve, reject) => {
+    const worker = getAIWorker();
+    const TIMEOUT_MS = 8000;
+    let timeoutId: ReturnType<typeof setTimeout>;
 
-  const chess = new Chess(fen);
-  const isWhite = chess.turn() === 'w';
-
-  // For very easy depth (1-2), occasionally make a random legal move for beginner feel
-  if (depth <= 2 && Math.random() < 0.25) {
-    const moves = chess.moves({ verbose: true });
-    if (moves.length > 0) {
-      const randomMove = moves[Math.floor(Math.random() * moves.length)];
-      return {
-        from: randomMove.from,
-        to: randomMove.to,
-        promotion: randomMove.promotion,
-        san: randomMove.san,
-        evalScore: evaluateBoard(chess)
-      };
-    }
-  }
-
-  const result = minimax(chess, depth, -Infinity, Infinity, isWhite);
-
-  if (!result.bestMove) {
-    const fallbackMoves = chess.moves({ verbose: true });
-    const fallback = fallbackMoves[0];
-    return {
-      from: fallback.from,
-      to: fallback.to,
-      promotion: fallback.promotion,
-      san: fallback.san,
-      evalScore: result.score
+    const handleMessage = (e: MessageEvent) => {
+      clearTimeout(timeoutId);
+      worker.removeEventListener('message', handleMessage);
+      worker.removeEventListener('error', handleError);
+      if (e.data) {
+        resolve(e.data);
+      } else {
+        reject(new Error('AI worker returned empty response'));
+      }
     };
-  }
 
-  return {
-    from: result.bestMove.from,
-    to: result.bestMove.to,
-    promotion: result.bestMove.promotion,
-    san: result.bestMove.san,
-    evalScore: result.score
-  };
+    const handleError = (err: ErrorEvent) => {
+      clearTimeout(timeoutId);
+      worker.removeEventListener('message', handleMessage);
+      worker.removeEventListener('error', handleError);
+      worker.terminate();
+      aiWorkerInstance = null;
+      reject(err);
+    };
+
+    timeoutId = setTimeout(() => {
+      worker.removeEventListener('message', handleMessage);
+      worker.removeEventListener('error', handleError);
+      worker.terminate();
+      aiWorkerInstance = null;
+      reject(new Error('AI move timeout (circuit breaker)'));
+    }, TIMEOUT_MS);
+
+    worker.addEventListener('message', handleMessage);
+    worker.addEventListener('error', handleError);
+
+    worker.postMessage({ fen, depth });
+  });
 }
 
 /**
