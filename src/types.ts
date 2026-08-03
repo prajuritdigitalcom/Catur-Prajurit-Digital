@@ -1,4 +1,4 @@
-export type GameMode = 'ai' | 'local' | 'online' | 'analysis';
+export type GameMode = 'ai' | 'local' | 'online';
 
 export type AILevel = 'easy' | 'medium' | 'hard' | 'master' | 'custom';
 

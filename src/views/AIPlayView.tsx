@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Chess } from 'chess.js';
-import { ArrowLeft, RotateCcw, Search, Bot, Trophy } from 'lucide-react';
+import { ArrowLeft, RotateCcw, Bot, Trophy } from 'lucide-react';
 import { ChessBoardContainer } from '../components/ChessBoardContainer';
 import { EvaluationBar } from '../components/EvaluationBar';
 import { CapturedPieces } from '../components/CapturedPieces';
@@ -19,7 +19,6 @@ interface AIPlayViewProps {
   timeControl: TimeControl;
   boardTheme: BoardTheme;
   onBack: () => void;
-  onOpenAnalysisWithFen?: (fen: string, pgn: string) => void;
 }
 
 export const AIPlayView: React.FC<AIPlayViewProps> = ({
@@ -28,8 +27,7 @@ export const AIPlayView: React.FC<AIPlayViewProps> = ({
   userColor,
   timeControl,
   boardTheme,
-  onBack,
-  onOpenAnalysisWithFen
+  onBack
 }) => {
   const [chess] = useState(() => new Chess(INITIAL_FEN));
   const [fen, setFen] = useState(INITIAL_FEN);
@@ -324,17 +322,6 @@ export const AIPlayView: React.FC<AIPlayViewProps> = ({
         isGameOver={isGameOver}
       />
 
-      {/* Analysis Link */}
-      {onOpenAnalysisWithFen && (
-        <button
-          onClick={() => onOpenAnalysisWithFen(fen, chess.pgn())}
-          className="w-full py-2.5 rounded-2xl bg-white border border-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs"
-        >
-          <Search className="w-3.5 h-3.5 text-[#fe4c6f]" />
-          Buka Analisis HP
-        </button>
-      )}
-
       {/* Game Over Modal */}
       {isGameOver && gameResult && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
@@ -353,15 +340,6 @@ export const AIPlayView: React.FC<AIPlayViewProps> = ({
               >
                 Main Lagi (Rematch)
               </button>
-
-              {onOpenAnalysisWithFen && (
-                <button
-                  onClick={() => onOpenAnalysisWithFen(fen, chess.pgn())}
-                  className="w-full py-2 rounded-2xl bg-slate-100 text-slate-800 font-bold text-xs"
-                >
-                  Analisis Pertandingan
-                </button>
-              )}
 
               <button
                 onClick={onBack}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Edit3, Check, History, Search } from 'lucide-react';
+import { Edit3, Check, History } from 'lucide-react';
 import { UserProfile, GameState } from '../types';
 import { AVATARS } from '../constants/chess';
 import { saveProfile, getGameHistory } from '../lib/storage';
@@ -7,13 +7,11 @@ import { saveProfile, getGameHistory } from '../lib/storage';
 interface ProfileViewProps {
   profile: UserProfile;
   onUpdateProfile: (updated: UserProfile) => void;
-  onOpenAnalysisWithFen?: (fen: string, pgn: string) => void;
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
   profile,
-  onUpdateProfile,
-  onOpenAnalysisWithFen
+  onUpdateProfile
 }) => {
   const [displayNameInput, setDisplayNameInput] = useState(profile.displayName);
   const [selectedAvatar, setSelectedAvatar] = useState(profile.avatar);
@@ -182,15 +180,6 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                       </div>
                     </div>
                   </div>
-
-                  {onOpenAnalysisWithFen && (
-                    <button
-                      onClick={() => onOpenAnalysisWithFen(g.fen, g.pgn)}
-                      className="p-1.5 rounded-xl bg-white border border-slate-200 text-slate-800 font-bold text-xs flex items-center gap-1 shadow-2xs"
-                    >
-                      <Search className="w-3.5 h-3.5 text-[#fe4c6f]" />
-                    </button>
-                  )}
                 </div>
               );
             })}

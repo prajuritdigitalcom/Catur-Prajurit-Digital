@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bot, Users, Globe, Search, ChevronRight } from 'lucide-react';
+import { Bot, Users, Globe, ChevronRight } from 'lucide-react';
 import { AILevel, TimeControl } from '../types';
 import { AI_LEVELS, TIME_CONTROLS } from '../constants/chess';
 
@@ -7,14 +7,12 @@ interface LandingViewProps {
   onStartAI: (level: AILevel, color: 'w' | 'b' | 'random', timeControl: TimeControl) => void;
   onStartLocal: (timeControl: TimeControl) => void;
   onOpenOnline: () => void;
-  onOpenAnalysis: () => void;
 }
 
 const MODES = [
   { id: 'ai', icon: Bot, title: 'Lawan Bot AI', desc: '5 level, Stockfish engine + evaluation bar', tag: '1.e4', accent: 'brass' as const },
   { id: 'local', icon: Users, title: 'Main Lokal', desc: 'Dua pemain bergantian di satu HP', tag: 'O-O', accent: 'jade' as const },
-  { id: 'online', icon: Globe, title: 'Lobi Room Online', desc: 'Room privat, undang teman lewat kode', tag: '1-0', accent: 'garnet' as const },
-  { id: 'analysis', icon: Search, title: 'Papan Analisis', desc: 'Impor FEN/PGN, cari langkah terbaik', tag: '!?', accent: 'brass' as const }
+  { id: 'online', icon: Globe, title: 'Lobi Room Online', desc: 'Room privat, undang teman lewat kode', tag: '1-0', accent: 'garnet' as const }
 ];
 
 const accentClasses = {
@@ -26,8 +24,7 @@ const accentClasses = {
 export const LandingView: React.FC<LandingViewProps> = ({
   onStartAI,
   onStartLocal,
-  onOpenOnline,
-  onOpenAnalysis
+  onOpenOnline
 }) => {
   const [selectedAILevel, setSelectedAILevel] = React.useState<AILevel>('medium');
   const [selectedColor, setSelectedColor] = React.useState<'w' | 'b' | 'random'>('random');
@@ -49,7 +46,6 @@ export const LandingView: React.FC<LandingViewProps> = ({
     if (id === 'ai') setShowAiModal(true);
     else if (id === 'local') onStartLocal(TIME_CONTROLS[0]);
     else if (id === 'online') onOpenOnline();
-    else if (id === 'analysis') onOpenAnalysis();
   };
 
   return (

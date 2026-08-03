@@ -6,7 +6,6 @@ import { AIPlayView } from './views/AIPlayView';
 import { LocalPlayView } from './views/LocalPlayView';
 import { OnlinePlayView } from './views/OnlinePlayView';
 import { GameRoomView } from './views/GameRoomView';
-import { AnalysisView } from './views/AnalysisView';
 import { LeaderboardView } from './views/LeaderboardView';
 import { FriendsView } from './views/FriendsView';
 import { ProfileView } from './views/ProfileView';
@@ -34,7 +33,6 @@ export default function App() {
 
   const [localTimeControl, setLocalTimeControl] = useState<TimeControl>(TIME_CONTROLS[0]);
   const [activeRoomCode, setActiveRoomCode] = useState<string>('');
-  const [analysisState, setAnalysisState] = useState<{ fen?: string; pgn?: string }>({});
 
   useEffect(() => {
     soundEngine.setEnabled(userSettings.soundEnabled);
@@ -54,11 +52,6 @@ export default function App() {
   const handleJoinOnlineRoom = (code: string) => {
     setActiveRoomCode(code);
     setCurrentTab('gameroom');
-  };
-
-  const handleOpenAnalysisWithFen = (fen: string, pgn: string) => {
-    setAnalysisState({ fen, pgn });
-    setCurrentTab('analysis');
   };
 
   const isGameActive = currentTab === 'ai' || currentTab === 'local' || currentTab === 'gameroom';
@@ -83,10 +76,6 @@ export default function App() {
             onStartAI={handleStartAI}
             onStartLocal={handleStartLocal}
             onOpenOnline={() => setCurrentTab('online')}
-            onOpenAnalysis={() => {
-              setAnalysisState({});
-              setCurrentTab('analysis');
-            }}
           />
         )}
 
@@ -104,7 +93,6 @@ export default function App() {
             timeControl={aiConfig.timeControl}
             boardTheme={userSettings.boardTheme}
             onBack={() => setCurrentTab('landing')}
-            onOpenAnalysisWithFen={handleOpenAnalysisWithFen}
           />
         )}
 
@@ -153,15 +141,6 @@ export default function App() {
           />
         )}
 
-        {currentTab === 'analysis' && (
-          <AnalysisView
-            initialFen={analysisState.fen}
-            initialPgn={analysisState.pgn}
-            boardTheme={userSettings.boardTheme}
-            onBack={() => setCurrentTab('landing')}
-          />
-        )}
-
         {currentTab === 'leaderboard' && <LeaderboardView />}
 
         {currentTab === 'friends' && (
@@ -175,7 +154,6 @@ export default function App() {
           <ProfileView
             profile={userProfile}
             onUpdateProfile={setUserProfile}
-            onOpenAnalysisWithFen={handleOpenAnalysisWithFen}
           />
         )}
 
