@@ -158,10 +158,12 @@ export const ChessBoardContainer: React.FC<ChessBoardContainerProps> = ({
   }
 
   // 3. Highlight Selected Square
+  const isPinkTheme = theme === 'cyber';
+
   if (selectedSquare) {
     customSquareStyles[selectedSquare] = {
-      backgroundColor: 'rgba(254, 76, 111, 0.45)',
-      boxShadow: 'inset 0 0 8px rgba(254, 76, 111, 0.8)'
+      backgroundColor: isPinkTheme ? 'rgba(30, 58, 138, 0.45)' : 'rgba(254, 76, 111, 0.45)',
+      boxShadow: isPinkTheme ? 'inset 0 0 0 2px rgba(30, 58, 138, 0.9)' : 'inset 0 0 8px rgba(254, 76, 111, 0.8)'
     };
   }
 
@@ -169,9 +171,13 @@ export const ChessBoardContainer: React.FC<ChessBoardContainerProps> = ({
   possibleSquares.forEach((sq) => {
     const isCaptureTarget = chess.get(sq) !== null;
     customSquareStyles[sq] = {
-      background: isCaptureTarget
-        ? 'radial-gradient(circle, rgba(254, 76, 111, 0.85) 40%, transparent 40%)'
-        : 'radial-gradient(circle, rgba(254, 76, 111, 0.65) 25%, transparent 25%)',
+      background: isPinkTheme
+        ? (isCaptureTarget
+            ? 'radial-gradient(circle, rgba(15, 23, 42, 0.95) 42%, transparent 42%)'
+            : 'radial-gradient(circle, rgba(30, 58, 138, 0.85) 28%, transparent 28%)')
+        : (isCaptureTarget
+            ? 'radial-gradient(circle, rgba(254, 76, 111, 0.85) 40%, transparent 40%)'
+            : 'radial-gradient(circle, rgba(254, 76, 111, 0.65) 25%, transparent 25%)'),
       borderRadius: '50%'
     };
   });
