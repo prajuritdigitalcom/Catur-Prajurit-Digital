@@ -6,38 +6,50 @@ export const AI_LEVELS: AILevelConfig[] = [
   {
     id: 'easy',
     name: 'Easy (Pemula)',
-    depth: 2,
+    depth: 5,
     skill: 'Pemula',
     elo: 800,
     description: 'Cocok untuk belajar & pemain kasual. Membuat beberapa blunder.',
-    badgeColor: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+    badgeColor: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+    limitStrength: true,
+    skillLevel: 0,
+    movetimeMs: 300
   },
   {
     id: 'medium',
     name: 'Medium (Menengah)',
-    depth: 4,
+    depth: 8,
     skill: 'Menengah',
-    elo: 1300,
+    elo: 1500,
     description: 'Tantangan seimbang dengan pemahaman taktik dasar.',
-    badgeColor: 'bg-blue-500/10 text-blue-600 border-blue-500/20'
+    badgeColor: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+    limitStrength: true,
+    skillLevel: 8,
+    movetimeMs: 800
   },
   {
     id: 'hard',
     name: 'Hard (Klub)',
-    depth: 7,
+    depth: 12,
     skill: 'Pemain Klub',
-    elo: 1750,
+    elo: 1900,
     description: 'Bermain sangat presisi, memanfaatkan kesalahan lawan dengan cepat.',
-    badgeColor: 'bg-amber-500/10 text-amber-600 border-amber-500/20'
+    badgeColor: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+    limitStrength: true,
+    skillLevel: 15,
+    movetimeMs: 2000
   },
   {
     id: 'master',
-    name: 'Master (Stockfish Pro)',
-    depth: 12,
+    name: 'Master (Stockfish 18)',
+    depth: 18,
     skill: 'Master',
-    elo: 2200,
-    description: 'Kedalaman kalkulasi tinggi. Hampir tanpa cela!',
-    badgeColor: 'bg-rose-500/10 text-rose-600 border-rose-500/20'
+    elo: 3000,
+    description: 'Kekuatan penuh Stockfish 18. Praktis tanpa cela.',
+    badgeColor: 'bg-rose-500/10 text-rose-600 border-rose-500/20',
+    limitStrength: false,
+    skillLevel: 20,
+    movetimeMs: 4000
   },
   {
     id: 'custom',
@@ -46,7 +58,10 @@ export const AI_LEVELS: AILevelConfig[] = [
     skill: 'Kustom',
     elo: 1800,
     description: 'Tentukan kedalaman analisis engine dari depth 1 hingga 15.',
-    badgeColor: 'bg-purple-500/10 text-purple-600 border-purple-500/20'
+    badgeColor: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
+    limitStrength: false,
+    skillLevel: 20,
+    movetimeMs: 0
   }
 ];
 

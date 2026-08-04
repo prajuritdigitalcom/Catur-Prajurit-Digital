@@ -25,6 +25,7 @@
     "react": "^19.0.1",
     "react-chessboard": "^5.11.0",
     "react-dom": "^19.0.1",
+    "stockfish": "18.0.8",
     "vite": "^6.2.3"
   },
   "devDependencies": {

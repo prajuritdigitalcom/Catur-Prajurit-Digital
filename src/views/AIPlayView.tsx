@@ -8,7 +8,8 @@ import { GameClock } from '../components/GameClock';
 import { MoveHistory } from '../components/MoveHistory';
 import { AILevel, TimeControl, Player, MoveRecord, BoardTheme, GameState } from '../types';
 import { AI_LEVELS, INITIAL_FEN } from '../constants/chess';
-import { getAIMove, evaluateBoard } from '../lib/stockfishEngine';
+import { evaluateBoard } from '../lib/stockfishEngine';
+import { getAIMove } from '../lib/stockfishWasmEngine';
 import { soundEngine } from '../lib/audio';
 import { saveGameToHistory } from '../lib/storage';
 
@@ -103,7 +104,7 @@ export const AIPlayView: React.FC<AIPlayViewProps> = ({
       const minThinkingTime = 650 + Math.random() * 250;
       const startTime = Date.now();
 
-      const aiMove = await getAIMove(chess.fen(), selectedAiConfig.depth);
+      const aiMove = await getAIMove(chess.fen(), selectedAiConfig);
 
       const elapsedTime = Date.now() - startTime;
       const remainingDelay = Math.max(0, minThinkingTime - elapsedTime);

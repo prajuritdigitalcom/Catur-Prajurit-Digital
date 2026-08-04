@@ -10,6 +10,9 @@ export interface AILevelConfig {
   elo: number;
   description: string;
   badgeColor: string;
+  limitStrength: boolean;
+  skillLevel: number;
+  movetimeMs: number;
 }
 
 export interface TimeControl {
