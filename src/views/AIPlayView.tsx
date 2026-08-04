@@ -9,7 +9,7 @@ import { MoveHistory } from '../components/MoveHistory';
 import { AILevel, TimeControl, Player, MoveRecord, BoardTheme, GameState } from '../types';
 import { AI_LEVELS, INITIAL_FEN } from '../constants/chess';
 import { evaluateBoard } from '../lib/stockfishEngine';
-import { getAIMove, startNewGame, isEngineLoading } from '../lib/stockfishWasmEngine';
+import { getAIMove, startNewGame } from '../lib/stockfishWasmEngine';
 import { soundEngine } from '../lib/audio';
 import { saveGameToHistory } from '../lib/storage';
 
@@ -314,15 +314,7 @@ export const AIPlayView: React.FC<AIPlayViewProps> = ({
         </button>
       </div>
 
-      {/* Engine Loading / Thinking Status Banner */}
-      {isAiThinking && (
-        <div className="flex items-center justify-center gap-2 py-1.5 px-3 rounded-2xl bg-rose-50 border border-rose-200/90 text-[#fe4c6f] text-xs font-black shadow-xs animate-pulse">
-          <span className="w-2 h-2 rounded-full bg-[#fe4c6f]"></span>
-          <span>
-            {isEngineLoading() ? 'Memuat mesin catur (sekali saja)...' : 'AI sedang berpikir...'}
-          </span>
-        </div>
-      )}
+
 
       {/* Opponent Clock Top */}
       <GameClock
