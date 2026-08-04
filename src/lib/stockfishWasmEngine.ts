@@ -22,8 +22,38 @@ interface EngineMoveResult {
   evalScore: number;
 }
 
+interface CandidateMove {
+  multipv: number;
+  uciMove: string;
+  scoreCp: number;
+}
+
 let worker: Worker | null = null;
 let readyPromise: Promise<void> | null = null;
+let wasmFailedPermanently = false;
+let isEngineLoadingState = false;
+let isEngineLoadedState = false;
+let hasSentNewGame = false;
+
+export function isEngineLoaded(): boolean {
+  return isEngineLoadedState;
+}
+
+export function isEngineLoading(): boolean {
+  return isEngineLoadingState;
+}
+
+export function startNewGame() {
+  hasSentNewGame = false;
+  if (worker && isEngineLoadedState) {
+    try {
+      worker.postMessage('ucinewgame');
+      hasSentNewGame = true;
+    } catch {
+      // ignore
+    }
+  }
+}
 
 function detectWasmSupport(): boolean {
   try {
@@ -38,12 +68,19 @@ function detectWasmSupport(): boolean {
 }
 
 function initEngine(): Promise<void> {
+  if (wasmFailedPermanently) {
+    return Promise.reject(new Error('WASM engine previously failed, using legacy fallback'));
+  }
+
   if (readyPromise) return readyPromise;
 
   if (!detectWasmSupport()) {
+    wasmFailedPermanently = true;
     readyPromise = Promise.reject(new Error('WebAssembly not supported in this browser'));
     return readyPromise;
   }
+
+  isEngineLoadingState = true;
 
   readyPromise = new Promise((resolve, reject) => {
     try {
@@ -54,6 +91,8 @@ function initEngine(): Promise<void> {
         w.terminate();
         worker = null;
         readyPromise = null;
+        wasmFailedPermanently = true;
+        isEngineLoadingState = false;
         reject(new Error('Stockfish WASM init timed out'));
       }, INIT_TIMEOUT_MS);
 
@@ -65,6 +104,11 @@ function initEngine(): Promise<void> {
         } else if (line === 'readyok' && uciAcked) {
           clearTimeout(timeoutId);
           worker = w;
+          isEngineLoadingState = false;
+          isEngineLoadedState = true;
+
+          // Set default MultiPV option to allow move variation across all levels
+          worker.postMessage('setoption name MultiPV value 3');
           resolve();
         }
       };
@@ -74,12 +118,16 @@ function initEngine(): Promise<void> {
         w.terminate();
         worker = null;
         readyPromise = null;
+        wasmFailedPermanently = true;
+        isEngineLoadingState = false;
         reject(err.error || new Error('Stockfish WASM worker error'));
       };
 
       w.postMessage('uci');
     } catch (err) {
       readyPromise = null;
+      wasmFailedPermanently = true;
+      isEngineLoadingState = false;
       reject(err as Error);
     }
   });
@@ -103,7 +151,12 @@ function sendOptions(config: AILevelConfig) {
  * Minta gerakan dari engine asli. Otomatis fallback ke legacyEngine.ts kalau
  * WASM sama sekali tidak bisa dipakai (browser tidak didukung, fetch gagal, dst).
  */
-export async function getAIMove(fen: string, config: AILevelConfig): Promise<EngineMoveResult> {
+export async function getAIMove(
+  fen: string,
+  config: AILevelConfig,
+  aiTimeMs?: number,
+  incrementMs?: number
+): Promise<EngineMoveResult> {
   try {
     await initEngine();
   } catch (err) {
@@ -121,6 +174,7 @@ export async function getAIMove(fen: string, config: AILevelConfig): Promise<Eng
 
     let lastScoreCp: number | null = null;
     let lastMateIn: number | null = null;
+    const candidates: CandidateMove[] = [];
 
     const timeoutId = setTimeout(() => {
       worker?.removeEventListener('message', handleMessage);
@@ -130,14 +184,31 @@ export async function getAIMove(fen: string, config: AILevelConfig): Promise<Eng
     const handleMessage = (e: MessageEvent<string>) => {
       const line = e.data;
 
+      // Extract MultiPV candidates & score
       if (line.startsWith('info') && line.includes(' score ')) {
         const cpMatch = line.match(/score cp (-?\d+)/);
         const mateMatch = line.match(/score mate (-?\d+)/);
+        const multipvMatch = line.match(/multipv (\d+)/);
+        const pvMatch = line.match(/ pv ([a-h][1-8][a-h][1-8][qrbn]?)/);
+
         if (cpMatch) {
           lastScoreCp = parseInt(cpMatch[1], 10) * (chess.turn() === 'w' ? 1 : -1);
           lastMateIn = null;
         } else if (mateMatch) {
           lastMateIn = parseInt(mateMatch[1], 10) * (chess.turn() === 'w' ? 1 : -1);
+        }
+
+        if (multipvMatch && (cpMatch || mateMatch) && pvMatch) {
+          const multipv = parseInt(multipvMatch[1], 10);
+          const scoreCp = cpMatch ? parseInt(cpMatch[1], 10) : (mateMatch && parseInt(mateMatch[1], 10) > 0 ? 10000 : -10000);
+          const uciMove = pvMatch[1];
+
+          const idx = candidates.findIndex((c) => c.multipv === multipv);
+          if (idx >= 0) {
+            candidates[idx] = { multipv, uciMove, scoreCp };
+          } else {
+            candidates.push({ multipv, uciMove, scoreCp });
+          }
         }
         return;
       }
@@ -147,20 +218,58 @@ export async function getAIMove(fen: string, config: AILevelConfig): Promise<Eng
         worker?.removeEventListener('message', handleMessage);
 
         const parts = line.split(' ');
-        const uciMove = parts[1]; // contoh: "e2e4" atau "e7e8q"
-        if (!uciMove || uciMove === '(none)') {
+        let bestUciMove = parts[1]; // contoh: "e2e4" atau "e7e8q"
+        if (!bestUciMove || bestUciMove === '(none)') {
           reject(new Error('Engine returned no move (game likely already over)'));
           return;
         }
 
-        const from = uciMove.slice(0, 2);
-        const to = uciMove.slice(2, 4);
-        const promotion = uciMove.length > 4 ? uciMove.slice(4, 5) : undefined;
+        // Apply controlled move variations per level to prevent repetitive openings
+        if (candidates.length > 1) {
+          candidates.sort((a, b) => a.multipv - b.multipv);
+          const topCandidate = candidates[0];
+
+          let varProb = 0;
+          let maxCpDiff = 0;
+
+          if (config.id === 'easy') {
+            varProb = 0.20;
+            maxCpDiff = 250;
+          } else if (config.id === 'medium') {
+            varProb = 0.10;
+            maxCpDiff = 120;
+          } else if (config.id === 'hard') {
+            varProb = 0.04;
+            maxCpDiff = 50;
+          } else if (config.id === 'master') {
+            varProb = 0.015;
+            maxCpDiff = 20;
+          } else if (config.id === 'custom') {
+            varProb = 0.05;
+            maxCpDiff = 100;
+          }
+
+          if (Math.random() < varProb) {
+            const validAlts = candidates.filter((c) => {
+              if (c.multipv === 1) return false;
+              return Math.abs(c.scoreCp - topCandidate.scoreCp) <= maxCpDiff;
+            });
+
+            if (validAlts.length > 0) {
+              const picked = validAlts[Math.floor(Math.random() * validAlts.length)];
+              bestUciMove = picked.uciMove;
+            }
+          }
+        }
+
+        const from = bestUciMove.slice(0, 2);
+        const to = bestUciMove.slice(2, 4);
+        const promotion = bestUciMove.length > 4 ? bestUciMove.slice(4, 5) : undefined;
 
         try {
           const moveResult = chess.move({ from, to, promotion: promotion || 'q' });
           if (!moveResult) {
-            reject(new Error(`Engine move ${uciMove} was illegal on given FEN`));
+            reject(new Error(`Engine move ${bestUciMove} was illegal on given FEN`));
             return;
           }
           const evalScore =
@@ -176,11 +285,32 @@ export async function getAIMove(fen: string, config: AILevelConfig): Promise<Eng
     worker.addEventListener('message', handleMessage);
 
     sendOptions(config);
-    worker.postMessage('ucinewgame');
+
+    if (!hasSentNewGame) {
+      worker.postMessage('ucinewgame');
+      hasSentNewGame = true;
+    }
+
     worker.postMessage(`position fen ${fen}`);
 
-    if (config.movetimeMs) {
-      worker.postMessage(`go movetime ${config.movetimeMs}`);
+    // Adaptive move time management based on AI clock
+    let effectiveMovetimeMs = config.movetimeMs;
+
+    if (aiTimeMs !== undefined && aiTimeMs > 0) {
+      // In timed games, ensure AI never spends more than 4% of remaining clock per move
+      // When AI has less than 5 seconds left, move within 100ms max!
+      const clockCapPercent = aiTimeMs < 5000 ? 0.01 : 0.04;
+      const timeBudget = Math.max(50, Math.floor(aiTimeMs * clockCapPercent) + (incrementMs || 0) * 800);
+
+      if (effectiveMovetimeMs) {
+        effectiveMovetimeMs = Math.min(effectiveMovetimeMs, timeBudget);
+      } else {
+        effectiveMovetimeMs = timeBudget;
+      }
+    }
+
+    if (effectiveMovetimeMs && effectiveMovetimeMs > 0) {
+      worker.postMessage(`go movetime ${effectiveMovetimeMs}`);
     } else {
       worker.postMessage(`go depth ${config.depth}`);
     }
@@ -192,4 +322,6 @@ export function terminateEngine() {
   worker?.terminate();
   worker = null;
   readyPromise = null;
+  isEngineLoadingState = false;
+  isEngineLoadedState = false;
 }

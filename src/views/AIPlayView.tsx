@@ -9,7 +9,7 @@ import { MoveHistory } from '../components/MoveHistory';
 import { AILevel, TimeControl, Player, MoveRecord, BoardTheme, GameState } from '../types';
 import { AI_LEVELS, INITIAL_FEN } from '../constants/chess';
 import { evaluateBoard } from '../lib/stockfishEngine';
-import { getAIMove } from '../lib/stockfishWasmEngine';
+import { getAIMove, startNewGame, isEngineLoading } from '../lib/stockfishWasmEngine';
 import { soundEngine } from '../lib/audio';
 import { saveGameToHistory } from '../lib/storage';
 
@@ -56,6 +56,11 @@ export const AIPlayView: React.FC<AIPlayViewProps> = ({
   const playerWhite = userColor === 'w' ? userPlayer : aiPlayer;
   const playerBlack = userColor === 'w' ? aiPlayer : userPlayer;
 
+  // Initialize engine state on mount
+  useEffect(() => {
+    startNewGame();
+  }, []);
+
   // Active turn timer
   useEffect(() => {
     if (isGameOver || timeControl.minutes === 0) return;
@@ -99,12 +104,15 @@ export const AIPlayView: React.FC<AIPlayViewProps> = ({
 
   const triggerAIMove = async () => {
     try {
-      // Minimum thinking delay (650ms - 900ms) so user move animation finishes smoothly,
-      // the AI turn feels natural and thoughtful, and the piece movement animation is clear!
-      const minThinkingTime = 650 + Math.random() * 250;
+      const aiTimeMs = (userColor === 'w' ? timeBlack : timeWhite) * 1000;
+      const incrementMs = timeControl.increment * 1000;
+
+      // Skip/reduce artificial delay if AI clock is low (< 5 seconds)
+      const isLowTime = timeControl.minutes > 0 && aiTimeMs < 5000;
+      const minThinkingTime = isLowTime ? 0 : 650 + Math.random() * 250;
       const startTime = Date.now();
 
-      const aiMove = await getAIMove(chess.fen(), selectedAiConfig);
+      const aiMove = await getAIMove(chess.fen(), selectedAiConfig, aiTimeMs, incrementMs);
 
       const elapsedTime = Date.now() - startTime;
       const remainingDelay = Math.max(0, minThinkingTime - elapsedTime);
@@ -267,6 +275,7 @@ export const AIPlayView: React.FC<AIPlayViewProps> = ({
   };
 
   const handleRematch = () => {
+    startNewGame();
     chess.reset();
     setFen(INITIAL_FEN);
     setHistory([]);
@@ -304,6 +313,16 @@ export const AIPlayView: React.FC<AIPlayViewProps> = ({
           <RotateCcw className="w-4 h-4" />
         </button>
       </div>
+
+      {/* Engine Loading / Thinking Status Banner */}
+      {isAiThinking && (
+        <div className="flex items-center justify-center gap-2 py-1.5 px-3 rounded-2xl bg-rose-50 border border-rose-200/90 text-[#fe4c6f] text-xs font-black shadow-xs animate-pulse">
+          <span className="w-2 h-2 rounded-full bg-[#fe4c6f]"></span>
+          <span>
+            {isEngineLoading() ? 'Memuat mesin catur (sekali saja)...' : 'AI sedang berpikir...'}
+          </span>
+        </div>
+      )}
 
       {/* Opponent Clock Top */}
       <GameClock

@@ -91,6 +91,12 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Static route for Stockfish WASM engine assets with 1-year caching
+  const enginesPublicPath = path.join(process.cwd(), 'public', 'engines');
+  const enginesDistPath = path.join(process.cwd(), 'dist', 'engines');
+  app.use('/engines', express.static(enginesPublicPath, { maxAge: '1y', immutable: true }));
+  app.use('/engines', express.static(enginesDistPath, { maxAge: '1y', immutable: true }));
+
   // API Routes
 
   // 1. Health check
